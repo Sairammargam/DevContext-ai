@@ -1,0 +1,77 @@
+# DevContext Daemon Configuration
+# Reads additional configuration from ~/.devctx/config.yml
+
+spring:
+  application:
+    name: devctx-daemon
+
+  config:
+    import:
+      - optional:file:${user.home}/.devctx/config.yml
+
+  # Disable HTTP server - Unix socket only
+  main:
+    web-application-type: none
+
+  # Disable auto-configuration for components that require PostgreSQL
+  autoconfigure:
+    exclude:
+      - org.springframework.ai.autoconfigure.vectorstore.pgvector.PgVectorStoreAutoConfiguration
+
+  # AI Configuration (defaults, override in ~/.devctx/config.yml)
+  ai:
+    openai:
+      api-key: AIzaSyAjH-Qn9QXkQBB5TrGt8J0AV11pgGKFHOk
+      base-url: https://generativelanguage.googleapis.com/v1beta/openai/
+      chat:
+        options:
+          model: gemini-2.5-flash
+          temperature: 0.7
+      embedding:
+        options:
+          model: text-embedding-004
+
+# Database configuration for vector store (enable when PostgreSQL is ready)
+# spring:
+#   datasource:
+#     url: jdbc:postgresql://localhost:5432/devctx
+#     username: ${DEVCTX_DB_USER:devctx}
+#     password: ${DEVCTX_DB_PASSWORD:devctx}
+
+# DevContext specific configuration
+devctx:
+  # Socket path for CLI communication
+  socket:
+    path: ${user.home}/.devctx/daemon.sock
+
+  # Index configuration
+  index:
+    # File patterns to include
+    include:
+      - "**/*.java"
+      - "**/*.go"
+      - "**/*.py"
+      - "**/*.js"
+      - "**/*.ts"
+      - "**/*.rs"
+    # File patterns to exclude
+    exclude:
+      - "**/node_modules/**"
+      - "**/vendor/**"
+      - "**/target/**"
+      - "**/build/**"
+      - "**/.git/**"
+
+  # Embedding configuration
+  embedding:
+    chunk-size: 1000
+    chunk-overlap: 200
+
+# Logging configuration
+logging:
+  level:
+    dev.devctx: INFO
+    org.springframework.ai: INFO
+  file:
+    path: ${user.home}/.devctx/logs
+    name: ${user.home}/.devctx/logs/daemon.log
