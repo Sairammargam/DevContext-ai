@@ -147,13 +147,13 @@ func configureGitHubCodebase(cfg *config.Config) error {
 func validateCodeDirectory(path string) error {
 	// Check for common code indicators
 	codeIndicators := []string{
-		"go.mod", "go.sum",           // Go
-		"package.json",               // Node.js
-		"pom.xml", "build.gradle",    // Java
+		"go.mod", "go.sum", // Go
+		"package.json",            // Node.js
+		"pom.xml", "build.gradle", // Java
 		"requirements.txt", "setup.py", "pyproject.toml", // Python
-		"Cargo.toml",                 // Rust
-		".git",                       // Git repo
-		"src",                        // Common source directory
+		"Cargo.toml", // Rust
+		".git",       // Git repo
+		"src",        // Common source directory
 	}
 
 	for _, indicator := range codeIndicators {

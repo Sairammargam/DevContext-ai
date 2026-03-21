@@ -82,4 +82,23 @@ help:
 	@echo "  deps          Download all dependencies"
 	@echo "  fmt           Format Go code"
 	@echo "  lint          Lint Go code"
+	@echo "  release       Build release artifacts for all platforms"
+	@echo "  package-daemon Package Spring Boot daemon JAR"
 	@echo "  help          Show this help message"
+
+# Build release for all platforms
+release:
+	@echo "Building release..."
+	./scripts/build-release.sh $(VERSION)
+
+# Package Spring Boot daemon JAR
+package-daemon:
+	@echo "Packaging daemon..."
+	cd $(DAEMON_DIR) && mvn package -DskipTests
+	@mkdir -p $(BIN_DIR)
+	cp $(DAEMON_DIR)/target/*.jar $(BIN_DIR)/daemon.jar
+	@echo "Daemon packaged at $(BIN_DIR)/daemon.jar"
+
+# Full release (CLI + daemon)
+release-all: release package-daemon
+	@echo "Full release complete!"

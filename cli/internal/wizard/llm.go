@@ -29,7 +29,7 @@ var providers = []string{
 var providerDescriptions = map[string]string{
 	"openai":    "OpenAI API (gpt-4o, gpt-4o-mini, o3-mini)",
 	"anthropic": "Anthropic API (claude-sonnet-4-5, claude-opus-4-6)",
-	"gemini":    "Google Gemini API (gemini-2.0-flash, gemini-1.5-pro)",
+	"gemini":    "Google Gemini API (gemini-2.5-flash, gemini-2.5-pro)",
 	"azure":     "Azure OpenAI Service",
 	"bedrock":   "AWS Bedrock (Claude, Titan, Llama)",
 	"ollama":    "Ollama local models (localhost:11434)",
@@ -41,7 +41,7 @@ var providerDescriptions = map[string]string{
 var defaultModels = map[string]string{
 	"openai":    "gpt-4o",
 	"anthropic": "claude-sonnet-4-5",
-	"gemini":    "gemini-2.0-flash",
+	"gemini":    "gemini-2.5-flash",
 	"azure":     "gpt-4o",
 	"bedrock":   "anthropic.claude-3-sonnet",
 	"ollama":    "llama3.2",
@@ -179,12 +179,12 @@ func configureGemini(cfg *config.Config) error {
 	cfg.DevCtx.LLM.APIKey = apiKey
 	cfg.DevCtx.LLM.BaseURL = defaultBaseURLs["gemini"]
 
-	models := []string{"gemini-2.0-flash", "gemini-1.5-pro", "gemini-1.5-flash"}
+	models := []string{"gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-flash", "gemini-1.5-pro", "gemini-1.5-flash"}
 	var model string
 	if err := survey.AskOne(&survey.Select{
 		Message: "Select chat model:",
 		Options: models,
-		Default: "gemini-2.0-flash",
+		Default: "gemini-2.5-flash",
 	}, &model); err != nil {
 		return err
 	}

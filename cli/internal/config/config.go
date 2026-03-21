@@ -43,6 +43,11 @@ type DaemonConfig struct {
 	JAR    string `yaml:"jar"`
 }
 
+// Timeout returns the default timeout duration for daemon operations
+func (d DaemonConfig) Timeout() time.Duration {
+	return time.Second
+}
+
 // DevCtxConfig is the root configuration structure
 type DevCtxConfig struct {
 	LLM      LLMConfig      `yaml:"llm"`

@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
 
+    <!-- Spring Boot Parent -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -19,29 +22,45 @@
 
     <properties>
         <java.version>21</java.version>
-        <spring-ai.version>1.0.0-M1</spring-ai.version>
+        <spring-ai.version>1.0.0-M6</spring-ai.version>
     </properties>
 
+    <!-- Spring AI BOM for version management -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-bom</artifactId>
+                <version>${spring-ai.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
-        <!-- Spring Boot WebFlux for reactive web -->
+
+        <!-- WebFlux (for streaming responses) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
 
-        <!-- Spring AI OpenAI Starter -->
+        <!-- Spring AI OpenAI -->
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-openai-spring-boot-starter</artifactId>
+            <version>${spring-ai.version}</version>
         </dependency>
 
-        <!-- Spring AI PGVector Store Starter -->
+        <!-- Spring AI PgVector -->
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-pgvector-store-spring-boot-starter</artifactId>
+            <version>${spring-ai.version}</version>
         </dependency>
 
-        <!-- Configuration processor for custom properties -->
+        <!-- Config processor -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
@@ -60,43 +79,43 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-test</artifactId>
             <scope>test</scope>
         </dependency>
-    </dependencies>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.springframework.ai</groupId>
-                <artifactId>spring-ai-bom</artifactId>
-                <version>${spring-ai.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+    </dependencies>
 
     <build>
         <plugins>
+            <!-- Spring Boot Plugin -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>dev.devctx.DaemonApplication</mainClass>
+                </configuration>
             </plugin>
         </plugins>
     </build>
 
+    <!-- ✅ Required for Spring AI RC versions -->
     <repositories>
         <repository>
             <id>spring-milestones</id>
             <name>Spring Milestones</name>
             <url>https://repo.spring.io/milestone</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
         </repository>
     </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>spring-milestones</id>
+            <name>Spring Milestones</name>
+            <url>https://repo.spring.io/milestone</url>
+        </pluginRepository>
+    </pluginRepositories>
 
 </project>
