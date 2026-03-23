@@ -1,11 +1,14 @@
 /Users/margamsairam/Desktop/project/devctx/daemon/src/main/java/dev/devctx/DaemonApplication.java
 /Users/margamsairam/Desktop/project/devctx/daemon/src/main/java/dev/devctx/agents/AgentRouter.java
 /Users/margamsairam/Desktop/project/devctx/daemon/src/main/java/dev/devctx/agents/DependencyTracerAgent.java
+/Users/margamsairam/Desktop/project/devctx/daemon/src/main/java/dev/devctx/agents/IndexAgent.java
 /Users/margamsairam/Desktop/project/devctx/daemon/src/main/java/dev/devctx/agents/LogicExplainerAgent.java
 /Users/margamsairam/Desktop/project/devctx/daemon/src/main/java/dev/devctx/agents/OnboardingAgent.java
 /Users/margamsairam/Desktop/project/devctx/daemon/src/main/java/dev/devctx/agents/PRReviewerAgent.java
 /Users/margamsairam/Desktop/project/devctx/daemon/src/main/java/dev/devctx/provider/LLMProviderConfig.java
+/Users/margamsairam/Desktop/project/devctx/daemon/src/main/java/dev/devctx/provider/PgVectorConfig.java
 /Users/margamsairam/Desktop/project/devctx/daemon/src/main/java/dev/devctx/rag/RagService.java
+/Users/margamsairam/Desktop/project/devctx/daemon/src/main/java/dev/devctx/rag/VectorStoreService.java
 /Users/margamsairam/Desktop/project/devctx/daemon/src/main/java/dev/devctx/socket/Request.java
 /Users/margamsairam/Desktop/project/devctx/daemon/src/main/java/dev/devctx/socket/Response.java
 /Users/margamsairam/Desktop/project/devctx/daemon/src/main/java/dev/devctx/socket/SocketServer.java

@@ -14,12 +14,11 @@ spring:
     web-application-type: none
     keep-alive: true
 
-  # Disable auto-configuration for components that require PostgreSQL and OpenAI
-  # LLMProviderConfig.java handles provider configuration dynamically
+  # Disable auto-configuration - LLMProviderConfig.java handles provider configuration dynamically
   autoconfigure:
     exclude:
-      - org.springframework.ai.autoconfigure.vectorstore.pgvector.PgVectorStoreAutoConfiguration
       - org.springframework.ai.autoconfigure.openai.OpenAiAutoConfiguration
+      - org.springframework.ai.autoconfigure.vectorstore.pgvector.PgVectorStoreAutoConfiguration
 
   # AI Configuration - handled by LLMProviderConfig.java based on devctx.llm.* settings
   ai:
@@ -28,18 +27,30 @@ spring:
         options:
           temperature: 0.7
 
-# Database configuration for vector store (enable when PostgreSQL is ready)
-# spring:
-#   datasource:
-#     url: jdbc:postgresql://localhost:5432/devctx
-#     username: ${DEVCTX_DB_USER:devctx}
-#     password: ${DEVCTX_DB_PASSWORD:devctx}
+  # Database configuration for PgVector (optional - enable with DEVCTX_PGVECTOR_ENABLED=true)
+  datasource:
+    url: ${DEVCTX_DB_URL:jdbc:postgresql://localhost:5432/devctx}
+    username: ${DEVCTX_DB_USER:devctx}
+    password: ${DEVCTX_DB_PASSWORD:devctx}
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+
+  # PgVector configuration
+  ai.vectorstore.pgvector:
+    index-type: HNSW
+    distance-type: COSINE_DISTANCE
+    dimensions: ${devctx.embedding.dimensions:1536}
 
 # DevContext specific configuration
 devctx:
   # Socket path for CLI communication
   socket:
     path: ${user.home}/.devctx/daemon.sock
+
+  # PgVector toggle (set DEVCTX_PGVECTOR_ENABLED=true to enable)
+  pgvector:
+    enabled: ${DEVCTX_PGVECTOR_ENABLED:false}
 
   # Index configuration
   index:
@@ -65,6 +76,12 @@ devctx:
   embedding:
     chunk-size: 1000
     chunk-overlap: 200
+    dimensions: 1536
+
+  # RAG configuration
+  rag:
+    top-k: 5
+    similarity-threshold: 0.7
 
 # Logging configuration
 logging:

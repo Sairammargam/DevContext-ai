@@ -1,0 +1,28 @@
+# Docker Compose for DevContext PgVector Database
+# Run: docker-compose up -d
+
+version: '3.8'
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: devctx-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: devctx
+      POSTGRES_USER: devctx
+      POSTGRES_PASSWORD: devctx
+    ports:
+      - "5432:5432"
+    volumes:
+      - devctx-pgdata:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U devctx -d devctx"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  devctx-pgdata:
+    driver: local

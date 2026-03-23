@@ -75,12 +75,46 @@ func runInteractiveAsk(client *socket.Client) {
 			break
 		}
 
-		askQuestion(client, input, history)
+		// Get response and capture it for history
+		response := askQuestionWithHistory(client, input, history)
 
-		// Add to history for context
+		// Add both user and assistant messages to history
 		history = append(history, socket.Message{Role: "user", Content: input})
+		if response != "" {
+			history = append(history, socket.Message{Role: "assistant", Content: response})
+		}
 		fmt.Println()
 	}
+}
+
+// askQuestionWithHistory sends a question and returns the full response for history tracking
+func askQuestionWithHistory(client *socket.Client, question string, history []socket.Message) string {
+	respChan, err := client.Ask(question, history, "")
+	if err != nil {
+		pterm.Error.Printf("Failed to send question: %v\n", err)
+		return ""
+	}
+
+	printer := render.NewPrinter("DevCtx")
+	printer.PrintAgentLabel()
+
+	var responseBuilder strings.Builder
+
+	for resp := range respChan {
+		switch resp.Type {
+		case "token":
+			printer.PrintToken(resp.Content)
+			responseBuilder.WriteString(resp.Content)
+		case "error":
+			fmt.Println()
+			pterm.Error.Println(resp.Error)
+			return ""
+		case "done":
+			fmt.Println()
+		}
+	}
+
+	return responseBuilder.String()
 }
 
 func askQuestion(client *socket.Client, question string, history []socket.Message) {

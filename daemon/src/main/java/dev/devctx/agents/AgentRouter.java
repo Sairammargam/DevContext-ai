@@ -19,16 +19,19 @@ public class AgentRouter {
     private final DependencyTracerAgent dependencyTracer;
     private final PRReviewerAgent prReviewer;
     private final OnboardingAgent onboarding;
+    private final IndexAgent indexAgent;
 
     public AgentRouter(
             LogicExplainerAgent logicExplainer,
             DependencyTracerAgent dependencyTracer,
             PRReviewerAgent prReviewer,
-            OnboardingAgent onboarding) {
+            OnboardingAgent onboarding,
+            IndexAgent indexAgent) {
         this.logicExplainer = logicExplainer;
         this.dependencyTracer = dependencyTracer;
         this.prReviewer = prReviewer;
         this.onboarding = onboarding;
+        this.indexAgent = indexAgent;
     }
 
     /**
@@ -44,6 +47,7 @@ public class AgentRouter {
                 case "why" -> dependencyTracer.handle(request, responder);
                 case "review" -> prReviewer.handle(request, responder);
                 case "onboard" -> onboarding.handle(request, responder);
+                case "index" -> indexAgent.handle(request, responder);
                 default -> {
                     log.warn("Unknown agent: {}", request.agent());
                     responder.accept(Response.error("Unknown agent: " + request.agent()));

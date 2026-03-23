@@ -163,6 +163,17 @@ func (c *Client) Onboard() (<-chan Response, error) {
 	})
 }
 
+// Index sends chunks to the daemon for vector store indexing
+func (c *Client) Index(chunks []map[string]interface{}) (<-chan Response, error) {
+	return c.Send(Request{
+		Agent:  "index",
+		Prompt: "Index code chunks",
+		Context: map[string]interface{}{
+			"chunks": chunks,
+		},
+	})
+}
+
 // SocketExists checks if the socket file exists
 func SocketExists(path string) bool {
 	_, err := os.Stat(path)

@@ -1,10 +1,14 @@
 dev/devctx/rag/RagService.class
 dev/devctx/socket/Request.class
+dev/devctx/provider/PgVectorConfig.class
 dev/devctx/agents/DependencyTracerAgent.class
 dev/devctx/agents/AgentRouter.class
+dev/devctx/rag/VectorStoreService.class
+dev/devctx/agents/IndexAgent$1.class
 dev/devctx/socket/Response.class
 dev/devctx/agents/LogicExplainerAgent.class
 dev/devctx/provider/LLMProviderConfig.class
+dev/devctx/agents/IndexAgent.class
 dev/devctx/DaemonApplication.class
 dev/devctx/agents/PRReviewerAgent.class
 dev/devctx/socket/SocketServer.class
