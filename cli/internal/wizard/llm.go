@@ -52,7 +52,7 @@ var defaultModels = map[string]string{
 // Default embedding models per provider
 var defaultEmbeddingModels = map[string]string{
 	"openai":    "text-embedding-3-small",
-	"anthropic": "text-embedding-3-small", // Uses OpenAI for embeddings
+	"anthropic": "text-embedding-3-small",
 	"gemini":    "text-embedding-004",
 	"azure":     "text-embedding-ada-002",
 	"bedrock":   "amazon.titan-embed-text-v1",
@@ -61,11 +61,13 @@ var defaultEmbeddingModels = map[string]string{
 	"custom":    "text-embedding-3-small",
 }
 
-// Default base URLs per provider
+// Default base URLs per provider.
+// NOTE: gemini is intentionally absent — LLMProviderConfig.java constructs
+// the correct Gemini OpenAI-compat URL internally. Writing any base-url for
+// Gemini causes the /v1beta path to be doubled.
 var defaultBaseURLs = map[string]string{
 	"openai":    "https://api.openai.com/v1",
 	"anthropic": "https://api.anthropic.com",
-	"gemini":    "https://generativelanguage.googleapis.com/v1beta",
 	"ollama":    "http://localhost:11434",
 	"vllm":      "http://localhost:8000/v1",
 }
@@ -117,7 +119,6 @@ func ConfigureProvider(cfg *config.Config) error {
 }
 
 func configureOpenAI(cfg *config.Config) error {
-	// API Key
 	var apiKey string
 	if err := survey.AskOne(&survey.Password{
 		Message: "Enter your OpenAI API key:",
@@ -127,7 +128,6 @@ func configureOpenAI(cfg *config.Config) error {
 	cfg.DevCtx.LLM.APIKey = apiKey
 	cfg.DevCtx.LLM.BaseURL = defaultBaseURLs["openai"]
 
-	// Model selection
 	models := []string{"gpt-4o", "gpt-4o-mini", "o3-mini", "gpt-4-turbo"}
 	var model string
 	if err := survey.AskOne(&survey.Select{
@@ -140,7 +140,6 @@ func configureOpenAI(cfg *config.Config) error {
 	cfg.DevCtx.LLM.Model = model
 	cfg.DevCtx.LLM.EmbeddingModel = defaultEmbeddingModels["openai"]
 
-	// Validate
 	return validateOpenAI(cfg)
 }
 
@@ -177,7 +176,11 @@ func configureGemini(cfg *config.Config) error {
 		return err
 	}
 	cfg.DevCtx.LLM.APIKey = apiKey
-	cfg.DevCtx.LLM.BaseURL = defaultBaseURLs["gemini"]
+	// BaseURL intentionally left empty for Gemini.
+	// LLMProviderConfig.java resolves the correct OpenAI-compat URL:
+	//   https://generativelanguage.googleapis.com/v1beta/openai/chat/completions
+	// Writing a base-url here causes the /v1beta segment to be doubled.
+	cfg.DevCtx.LLM.BaseURL = ""
 
 	models := []string{"gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-flash", "gemini-1.5-pro", "gemini-1.5-flash"}
 	var model string
@@ -191,7 +194,12 @@ func configureGemini(cfg *config.Config) error {
 	cfg.DevCtx.LLM.Model = model
 	cfg.DevCtx.LLM.EmbeddingModel = defaultEmbeddingModels["gemini"]
 
-	return validateGemini(cfg)
+	// Skip validation at init time — Gemini 2.5 models may return 403
+	// on the OpenAI-compat endpoint for free-tier keys during preflight.
+	// The daemon will surface any real auth errors at query time.
+	spinner, _ := pterm.DefaultSpinner.Start("Skipping preflight check for Gemini...")
+	spinner.Success("Google AI API key saved — will verify on first query")
+	return nil
 }
 
 func configureAzure(cfg *config.Config) error {
@@ -235,8 +243,8 @@ func configureAzure(cfg *config.Config) error {
 }
 
 func configureBedrock(cfg *config.Config) error {
-	var region string
 	regions := []string{"us-east-1", "us-west-2", "eu-west-1", "ap-northeast-1"}
+	var region string
 	if err := survey.AskOne(&survey.Select{
 		Message: "Select AWS region:",
 		Options: regions,
@@ -345,6 +353,7 @@ func configureCustom(cfg *config.Config) error {
 }
 
 // Validation functions
+
 func validateOpenAI(cfg *config.Config) error {
 	spinner, _ := pterm.DefaultSpinner.Start("Validating OpenAI API key...")
 
@@ -363,7 +372,6 @@ func validateOpenAI(cfg *config.Config) error {
 		spinner.Fail("Invalid API key")
 		return fmt.Errorf("invalid OpenAI API key")
 	}
-
 	if resp.StatusCode != 200 {
 		spinner.Fail("API error")
 		return fmt.Errorf("OpenAI API returned status %d", resp.StatusCode)
@@ -377,7 +385,6 @@ func validateAnthropic(cfg *config.Config) error {
 	spinner, _ := pterm.DefaultSpinner.Start("Validating Anthropic API key...")
 
 	client := &http.Client{Timeout: 10 * time.Second}
-
 	body := map[string]interface{}{
 		"model":      cfg.DevCtx.LLM.Model,
 		"max_tokens": 1,
@@ -406,32 +413,10 @@ func validateAnthropic(cfg *config.Config) error {
 	return nil
 }
 
-func validateGemini(cfg *config.Config) error {
-	spinner, _ := pterm.DefaultSpinner.Start("Validating Google AI API key...")
-
-	client := &http.Client{Timeout: 10 * time.Second}
-	url := fmt.Sprintf("%s/models?key=%s", cfg.DevCtx.LLM.BaseURL, cfg.DevCtx.LLM.APIKey)
-
-	resp, err := client.Get(url)
-	if err != nil {
-		spinner.Fail("Failed to connect to Google AI")
-		return fmt.Errorf("connection failed: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode == 400 || resp.StatusCode == 401 {
-		spinner.Fail("Invalid API key")
-		return fmt.Errorf("invalid Google AI API key")
-	}
-
-	spinner.Success("Google AI API key validated")
-	return nil
-}
 
 func validateAzure(cfg *config.Config) error {
 	spinner, _ := pterm.DefaultSpinner.Start("Validating Azure OpenAI configuration...")
 
-	// Just check if endpoint is reachable
 	client := &http.Client{Timeout: 10 * time.Second}
 	url := fmt.Sprintf("%s/openai/deployments?api-version=%s",
 		strings.TrimSuffix(cfg.DevCtx.LLM.BaseURL, "/"),

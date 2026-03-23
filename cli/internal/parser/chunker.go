@@ -3,6 +3,7 @@ package parser
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"strings"
 )
 
@@ -251,7 +252,7 @@ func estimateTokens(text string) int {
 
 // generateChunkID creates a unique ID for a chunk
 func generateChunkID(path string, line int) string {
-	data := []byte(path + ":" + string(rune(line)))
+	data := []byte(fmt.Sprintf("%s:%d", path, line))
 	hash := sha256.Sum256(data)
 	return hex.EncodeToString(hash[:8])
 }

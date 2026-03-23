@@ -111,8 +111,10 @@ public class SocketServer {
             if (line == null) return;
 
             Request request = objectMapper.readValue(line, Request.class);
-            log.debug("Received request: agent={}, prompt={}", request.agent(),
-                request.prompt().substring(0, Math.min(50, request.prompt().length())));
+            String promptPreview = request.prompt() != null
+                ? request.prompt().substring(0, Math.min(50, request.prompt().length()))
+                : "(empty)";
+            log.debug("Received request: agent={}, prompt={}", request.agent(), promptPreview);
 
             // Route to appropriate agent and stream response
             agentRouter.route(request, response -> {

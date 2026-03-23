@@ -83,10 +83,12 @@ func configureLocalCodebase(cfg *config.Config) error {
 	if err := validateCodeDirectory(absPath); err != nil {
 		pterm.Warning.Println(err.Error())
 		var proceed bool
-		survey.AskOne(&survey.Confirm{
+		if err := survey.AskOne(&survey.Confirm{
 			Message: "Continue anyway?",
 			Default: true,
-		}, &proceed)
+		}, &proceed); err != nil {
+			return fmt.Errorf("prompt failed: %w", err)
+		}
 		if !proceed {
 			return fmt.Errorf("aborted by user")
 		}

@@ -67,7 +67,9 @@ func runIndex() {
 
 	// Update last run timestamp
 	cfg.DevCtx.Index.LastRun = time.Now()
-	cfg.Save()
+	if err := cfg.Save(); err != nil {
+		pterm.Warning.Printf("Failed to save config: %v\n", err)
+	}
 
 	fmt.Println()
 	pterm.Success.Println("Indexing complete!")

@@ -168,9 +168,17 @@ func (w *EmbeddingWorker) embedGemini(chunks []parser.Chunk) ([]EmbeddingResult,
 		model = "text-embedding-004"
 	}
 
+	// Gemini base URL - use configured URL or default to Google AI API
+	// Note: BaseURL may be empty for Gemini (see wizard/llm.go) since
+	// LLMProviderConfig.java handles the chat URL internally
+	baseURL := w.config.DevCtx.LLM.BaseURL
+	if baseURL == "" {
+		baseURL = "https://generativelanguage.googleapis.com/v1beta"
+	}
+
 	for _, chunk := range chunks {
 		url := fmt.Sprintf("%s/models/%s:embedContent?key=%s",
-			w.config.DevCtx.LLM.BaseURL, model, w.config.DevCtx.LLM.APIKey)
+			baseURL, model, w.config.DevCtx.LLM.APIKey)
 
 		body := map[string]interface{}{
 			"content": map[string]interface{}{
@@ -197,6 +205,13 @@ func (w *EmbeddingWorker) embedGemini(chunks []parser.Chunk) ([]EmbeddingResult,
 		resp, err := w.client.Do(req)
 		if err != nil {
 			results = append(results, EmbeddingResult{ChunkID: chunk.ID, Error: err.Error()})
+			continue
+		}
+
+		if resp.StatusCode != 200 {
+			body, _ := io.ReadAll(resp.Body)
+			resp.Body.Close()
+			results = append(results, EmbeddingResult{ChunkID: chunk.ID, Error: fmt.Sprintf("Gemini API error %d: %s", resp.StatusCode, string(body))})
 			continue
 		}
 
@@ -259,6 +274,13 @@ func (w *EmbeddingWorker) embedOllama(chunks []parser.Chunk) ([]EmbeddingResult,
 		resp, err := w.client.Do(req)
 		if err != nil {
 			results = append(results, EmbeddingResult{ChunkID: chunk.ID, Error: err.Error()})
+			continue
+		}
+
+		if resp.StatusCode != 200 {
+			body, _ := io.ReadAll(resp.Body)
+			resp.Body.Close()
+			results = append(results, EmbeddingResult{ChunkID: chunk.ID, Error: fmt.Sprintf("Ollama API error %d: %s", resp.StatusCode, string(body))})
 			continue
 		}
 

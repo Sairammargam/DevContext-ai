@@ -309,6 +309,10 @@ func (g *DependencyGraph) GetCallers(symbolName string) ([]GraphNode, error) {
 		nodes = append(nodes, n)
 	}
 
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
 	return nodes, nil
 }
 
@@ -337,6 +341,10 @@ func (g *DependencyGraph) GetCallees(symbolName string) ([]GraphNode, error) {
 		nodes = append(nodes, n)
 	}
 
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
 	return nodes, nil
 }
 
@@ -360,6 +368,10 @@ func (g *DependencyGraph) GetStatistics() (map[string]int, error) {
 		stats["nodes_"+kind] = count
 	}
 
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
 	// Count edges by kind
 	rows2, err := g.db.Query("SELECT kind, COUNT(*) FROM edges GROUP BY kind")
 	if err != nil {
@@ -374,6 +386,10 @@ func (g *DependencyGraph) GetStatistics() (map[string]int, error) {
 			return nil, err
 		}
 		stats["edges_"+kind] = count
+	}
+
+	if err := rows2.Err(); err != nil {
+		return nil, err
 	}
 
 	return stats, nil

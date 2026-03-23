@@ -115,7 +115,10 @@ func runExplain(target string) {
 	}
 
 	client := socket.NewClient(cfg.DevCtx.Daemon.Socket)
-	ensureDaemonRunning(client, cfg)
+	if err := ensureDaemonRunning(client, cfg); err != nil {
+		pterm.Error.Printf("Daemon error: %v\n", err)
+		return
+	}
 
 	// Read file content if target is a file path
 	var context map[string]interface{}
@@ -160,7 +163,10 @@ func runWhy(source, target string) {
 	}
 
 	client := socket.NewClient(cfg.DevCtx.Daemon.Socket)
-	ensureDaemonRunning(client, cfg)
+	if err := ensureDaemonRunning(client, cfg); err != nil {
+		pterm.Error.Printf("Daemon error: %v\n", err)
+		return
+	}
 
 	respChan, err := client.Why(source, target)
 	if err != nil {
@@ -205,7 +211,10 @@ func runReview() {
 	}
 
 	client := socket.NewClient(cfg.DevCtx.Daemon.Socket)
-	ensureDaemonRunning(client, cfg)
+	if err := ensureDaemonRunning(client, cfg); err != nil {
+		pterm.Error.Printf("Daemon error: %v\n", err)
+		return
+	}
 
 	respChan, err := client.Review(diff)
 	if err != nil {
@@ -238,7 +247,10 @@ func runOnboard() {
 	}
 
 	client := socket.NewClient(cfg.DevCtx.Daemon.Socket)
-	ensureDaemonRunning(client, cfg)
+	if err := ensureDaemonRunning(client, cfg); err != nil {
+		pterm.Error.Printf("Daemon error: %v\n", err)
+		return
+	}
 
 	pterm.Info.Println("Generating onboarding guide...")
 	fmt.Println()
@@ -283,12 +295,17 @@ func getGitDiff() (string, error) {
 	return string(output), nil
 }
 
-func ensureDaemonRunning(client *socket.Client, cfg *config.Config) {
+func ensureDaemonRunning(client *socket.Client, cfg *config.Config) error {
 	if !client.IsConnected() {
 		pterm.Warning.Println("Daemon not running. Starting...")
-		startDaemonProcess(cfg)
-		client.WaitForConnection(15 * cfg.DevCtx.Daemon.Timeout())
+		if err := startDaemonProcess(cfg); err != nil {
+			return fmt.Errorf("failed to start daemon: %w", err)
+		}
+		if err := client.WaitForConnection(15 * cfg.DevCtx.Daemon.Timeout()); err != nil {
+			return fmt.Errorf("daemon failed to start: %w", err)
+		}
 	}
+	return nil
 }
 
 func startDaemonProcess(cfg *config.Config) error {
